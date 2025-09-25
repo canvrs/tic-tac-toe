@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe: The Mind Bender</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-dark">
+    <div class="app-container">
+        <section id="mainMenu" class="view active">
+            <h1 class="text-5xl font-bold text-center text-white mb-8 animate-fade-in">Tic-Tac-Toe: The Mind Bender</h1>
+            <div class="menu-buttons flex flex-col gap-4">
+                <button id="playGameBtn" class="menu-button">Play Game</button>
+                <button id="achievementsBtn" class="menu-button secondary">Achievements (A)</button>
+                <button id="statsBtn" class="menu-button secondary">Statistics</button>
+                <button id="howToPlayBtn" class="menu-button secondary">How to Play</button>
+                <button id="settingsBtn" class="menu-button secondary">Settings (S)</button>
+            </div>
+        </section>
+
+        <section id="gameScreen" class="view hidden">
+            <h1 class="text-4xl font-bold text-center text-white mb-6">Tic-Tac-Toe: The Mind Bender</h1>
+
+            <div class="status-bar" role="status" aria-live="polite">
+                <span id="gameStatus" class="flex-grow text-center lg:text-left">Initializing...</span>
+                <div class="flex items-center gap-2 lg:gap-4 mt-2 lg:mt-0">
+                    <span id="playerXScore" class="player-indicator x-active">Player X: 0</span>
+                    <span id="playerOScore" class="player-indicator">AI O: 0</span>
+                    <span id="drawScore" class="player-indicator">Draws: 0</span>
+                </div>
+            </div>
+
+            <div id="gameTimerContainer" class="game-timer-container hidden">
+                <div id="gameTimer" class="game-timer">10.0</div>
+            </div>
+
+            <div class="game-area">
+                <div class="game-board" id="gameBoard" role="grid" aria-label="Tic Tac Toe Board">
+                    </div>
+                <div class="text-center text-sm text-gray-400 mt-4" id="twistInfo" aria-live="polite">
+                    The AI adapts, evolves, and *remembers*. Play wisely, or face its true despair!
+                </div>
+            </div>
+
+            <div class="game-buttons flex flex-col sm:flex-row justify-center gap-4 mt-6">
+                <button id="resetButton" class="flex-1" aria-keyshortcuts="r">Restart Game (R)</button>
+                <button id="backToMenuBtn" class="secondary flex-1">Back to Menu</button>
+            </div>
+        </section>
+
+        <div id="gameSetupModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="gameSetupModalTitle">New Game Setup</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close setup modal">&times;</button>
+
+                <div class="settings-content">
+                    <div class="setting-group">
+                        <label class="setting-group-label">Choose Difficulty:</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="radio-label">
+                                <input type="radio" name="difficulty" value="zen" checked> Zen Master (Easy)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="difficulty" value="strategist"> The Strategist (Optimal)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="difficulty" value="punisher"> The Punisher (Relentless)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-group mt-6">
+                        <label class="setting-group-label">Choose Game Mode:</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="standard" checked> Standard
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="suddenDeath"> Sudden Death (Timed Moves)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="blindPlay"> Blind Play (Hidden Cells)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="gameMode" value="dailyChallenge"> Daily Challenge (Once a day)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="setting-item mt-6">
+                        <label for="autoPlayNextRound">Auto Play Next Round:</label>
+                        <input type="checkbox" id="autoPlayNextRound" aria-describedby="autoPlayNextRoundHelp">
+                    </div>
+                    <p id="autoPlayNextRoundHelp" class="text-xs text-gray-500 text-right mt-1 mb-2">If checked, game automatically restarts after a win/draw.</p>
+
+                    <button id="startGameFromSetup" class="mt-8 menu-button">Start Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="achievementsModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="achievementsModalTitle">Achievements</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close achievements modal">&times;</button>
+                <div id="achievementList" class="achievement-grid" role="list">
+                    </div>
+            </div>
+        </div>
+
+        <div id="statsModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="statsModalTitle">Statistics</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close stats modal">&times;</button>
+                <div id="statsContent" class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Total Games:</span>
+                        <span id="statTotalGames" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Player Wins:</span>
+                        <span id="statPlayerWins" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">AI Wins:</span>
+                        <span id="statAIWins" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Draws:</span>
+                        <span id="statDraws" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Win Rate:</span>
+                        <span id="statWinRate" class="stat-value">0%</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Fastest SD Win:</span>
+                        <span id="statFastestSDWin" class="stat-value">N/A</span>
+                    </div>
+                </div>
+                <button id="resetStatsBtn" class="mt-8 menu-button secondary">Reset All Stats (Confirmation)</button>
+            </div>
+        </div>
+
+        <div id="howToPlayModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="howToPlayModalTitle">How to Play</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close how to play modal">&times;</button>
+                <div class="how-to-play-content text-left text-gray-300">
+                    <p class="mb-4">Welcome to Tic-Tac-Toe: The Mind Bender, where the classic game meets a truly challenging AI and exciting new modes!</p>
+
+                    <h3 class="font-bold text-indigo-400 mb-2">Game Objective:</h3>
+                    <p class="mb-4">Be the first to get three of your marks (X or O) in a row - horizontally, vertically, or diagonally.</p>
+
+                    <h3 class="font-bold text-indigo-400 mb-2">AI Difficulties:</h3>
+                    <ul class="list-disc list-inside mb-4">
+                        <li><span class="font-semibold text-white">Zen Master:</span> A relaxed AI that occasionally makes a random move. Good for practice!</li>
+                        <li><span class="font-semibold text-white">The Strategist:</span> This AI plays optimally. It will never lose if there's a winning move, and will always force a draw if possible. Your ultimate challenge!</li>
+                        <li><span class="font-semibold text-white">The Punisher:</span> The Strategist, but more relentless. Expect faster AI moves and subtle psychological pressure.</li>
+                    </ul>
+
+                    <h3 class="font-bold text-indigo-400 mb-2">Game Modes:</h3>
+                    <ul class="list-disc list-inside mb-4">
+                        <li><span class="font-semibold text-white">Standard:</span> Classic Tic-Tac-Toe against the chosen AI.</li>
+                        <li><span class="font-semibold text-white">Sudden Death:</span> Each player has a time limit per move. Fail to move in time, and the game automatically plays for you (or you lose!). Stressful and fast-paced.</li>
+                        <li><span class="font-semibold text-white">Blind Play:</span> After a few moves, some cells temporarily hide their marks. Test your memory and spatial awareness!</li>
+                        <li><span class="font-semibold text-white">Daily Challenge:</span> A unique, pre-set board puzzle each day. Can you solve it? (Resets daily at midnight UTC).</li>
+                    </ul>
+
+                    <h3 class="font-bold text-indigo-400 mb-2">Settings & Features:</h3>
+                    <ul class="list-disc list-inside mb-4">
+                        <li><span class="font-semibold text-white">Auto Play Next Round:</span> Automatically starts a new game after a win/draw.</li>
+                        <li><span class="font-semibold text-white">Achievements:</span> Unlock special titles for your skill and endurance.</li>
+                        <li><span class="font-semibold text-white">Statistics:</span> Track your overall performance.</li>
+                        <li><span class="font-semibold text-white">Themes:</span> Customize the look of your game.</li>
+                        <li><span class="font-semibold text-white">Sound:</span> Toggle game audio on/off.</li>
+                        <li><span class="font-semibold text-white">Keyboard Shortcuts:</span> Use R (Restart), A (Achievements), S (Settings - though S now opens the main settings modal, not game setup), Esc (Close Modal).</li>
+                        <li><span class="font-semibold text-white">Replay:</span> After a game, watch the moves unfold again!</li>
+                    </ul>
+                    <p class="text-sm italic">Good luck, player. The AI is waiting for you...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="settingsModalTitle">Settings</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close settings modal">&times;</button>
+                <div class="settings-content">
+                    <div class="setting-item">
+                        <label for="animationSpeed">Animation Speed:</label>
+                        <input type="range" id="animationSpeed" min="100" max="800" value="300" step="50" aria-valuemin="100" aria-valuemax="800" aria-valuenow="300">
+                        <span id="animationSpeedValue" class="slider-value">300ms</span>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="soundToggle">Sound Effects:</label>
+                        <input type="checkbox" id="soundToggle" checked>
+                    </div>
+
+                    <div class="setting-group mt-6">
+                        <label class="setting-group-label">Theme:</label>
+                        <div class="flex flex-col gap-2">
+                            <label class="radio-label">
+                                <input type="radio" name="theme" value="dark" checked> Dark (Default)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="theme" value="light"> Light
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="theme" value="matrix"> Matrix Green
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="replayModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="replayModalTitle">Game Replay</h2>
+                <button class="modal-close-button" data-modal-close aria-label="Close replay modal">&times;</button>
+                <div id="replayBoard" class="game-board-replay">
+                     </div>
+                <div class="flex justify-center gap-4 mt-6">
+                    <button id="replayPrevBtn" class="menu-button secondary" disabled>&lt; Prev</button>
+                    <button id="replayPlayPauseBtn" class="menu-button">Play</button>
+                    <button id="replayNextBtn" class="menu-button secondary" disabled>Next &gt;</button>
+                </div>
+                <p id="replayStatus" class="text-center text-sm text-gray-400 mt-4">Replay Controls</p>
+            </div>
+        </div>
+
+        <div id="confirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <h2 id="confirmationModalTitle" class="text-center text-xl font-bold mb-6">Are you sure?</h2>
+                <p id="confirmationModalMessage" class="text-center mb-8"></p>
+                <div class="flex justify-center gap-4">
+                    <button id="confirmYesBtn" class="menu-button">Yes</button>
+                    <button id="confirmNoBtn" class="menu-button secondary">No</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

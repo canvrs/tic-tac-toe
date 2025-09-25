@@ -1,0 +1,645 @@
+/* Custom Styles - Overrides and fine-tuning Tailwind for dark, minimalist theme */
+body {
+    font-family: 'Rubik', sans-serif;
+    background-color: #050711; /* Very dark blue, almost black */
+    color: #E0FBFC; /* Light Blue/Cyan for general text */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    overflow-y: auto; /* Allow scrolling on body if content exceeds viewport */
+    -webkit-font-smoothing: antialiased; /* Better font rendering */
+    -moz-osx-font-smoothing: grayscale; /* Better font rendering */
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/* App Container */
+.app-container {
+    background-color: #0F172A; /* Darker slate blue */
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.7);
+    max-width: 450px; /* Constrain max width for 3x3 board */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    border: 1px solid #1E293B; /* Subtle border */
+    position: relative; /* For absolutely positioned notifications */
+    min-height: 600px; /* Ensure a minimum height for consistent layout */
+}
+
+/* View Management */
+.view {
+    display: none;
+    flex-direction: column;
+    gap: 25px;
+}
+.view.active {
+    display: flex;
+}
+.view.hidden {
+    display: none;
+}
+
+/* Main Menu & Game Setup Buttons */
+.menu-buttons button,
+.modal-content button.menu-button {
+    background-color: #6366F1; /* Indigo-500 */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    font-size: 1.1em;
+}
+.menu-buttons button:hover,
+.modal-content button.menu-button:hover {
+    background-color: #4F46E5; /* Indigo-600 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
+.menu-buttons button:active,
+.modal-content button.menu-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.menu-buttons button.secondary,
+.modal-content button.menu-button.secondary {
+    background-color: #475569; /* Slate-600 */
+}
+.menu-buttons button.secondary:hover,
+.modal-content button.menu-button.secondary:hover {
+    background-color: #334155; /* Slate-700 */
+}
+
+/* Game Board */
+.game-board,
+.game-board-replay {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+    grid-template-rows: repeat(3, 1fr); /* 3 equal rows */
+    gap: 10px; /* Spacing between cells */
+    aspect-ratio: 1 / 1; /* Keep board square */
+    width: 100%; /* Occupy full width of its parent */
+    max-width: 350px; /* Max size for the board itself */
+    margin: 0 auto; /* Center the board */
+    background-color: #0A1128; /* Base dark blue for board area */
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 10px; /* Inner padding for the grid */
+    position: relative; /* For animations */
+    overflow: hidden; /* For cell reveal/blind effects */
+}
+
+.cell {
+    width: 100%; /* Fill grid area */
+    height: 100%; /* Fill grid area */
+    background-color: #121A2C; /* Darkest blue for cells */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.8em; /* Large font for marks */
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s ease-in-out;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05); /* Very subtle cell border */
+    position: relative;
+    overflow: hidden; /* For animated marks */
+}
+
+.cell:hover:not(.occupied):not(.disabled) {
+    background-color: #1A223A; /* Hover effect */
+    transform: scale(1.03);
+}
+.cell.x-mark {
+    color: #EF4444; /* Tailwind red-500 */
+}
+.cell.o-mark {
+    color: #3B82F6; /* Tailwind blue-500 */
+}
+.cell.winning-cell {
+    background-color: #10B981; /* Tailwind emerald-500 for win */
+    color: #FFFFFF;
+    animation: pulse-win 1s infinite alternate;
+}
+@keyframes pulse-win {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.05); opacity: 0.9; box-shadow: 0 0 15px #10B981; }
+}
+
+/* Mark Animation */
+.cell span.mark-animated {
+    display: block;
+    opacity: 0;
+    transform: scale(0.5);
+    animation: mark-in var(--animation-speed) ease-out forwards;
+}
+@keyframes mark-in {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* Blind Play Mode */
+.cell.blind {
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+    color: transparent; /* Hide X/O */
+    cursor: default;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    transition: all 0.5s ease-in-out;
+}
+.cell.blind.highlight-on-hover:hover {
+    background-color: rgba(0, 0, 0, 0.4); /* Slightly reveal on hover */
+    cursor: pointer;
+}
+
+/* Winning Line Animation */
+.winning-line-animation {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.7); /* White line */
+    z-index: 10;
+    pointer-events: none; /* Don't block clicks */
+    border-radius: 5px;
+    animation: draw-line var(--animation-speed) ease-out forwards;
+}
+/* Horizontal */
+.winning-line-animation.horizontal {
+    height: 10px;
+    width: 0%;
+    left: 0;
+    transform: translateY(-50%);
+}
+@keyframes draw-line {
+    from { width: 0%; }
+    to { width: 100%; }
+}
+/* Vertical */
+.winning-line-animation.vertical {
+    width: 10px;
+    height: 0%;
+    top: 0;
+    transform: translateX(-50%);
+}
+@keyframes draw-line-vertical {
+    from { height: 0%; }
+    to { height: 100%; }
+}
+/* Diagonal TL-BR */
+.winning-line-animation.diag1 {
+    width: 10px;
+    height: 0%;
+    transform-origin: top left;
+    transform: rotate(45deg) scaleY(0);
+    left: 0; top: 0;
+}
+@keyframes draw-line-diag1 {
+    from { transform: rotate(45deg) scaleY(0); }
+    to { transform: rotate(45deg) scaleY(1); height: calc(141.42% * (var(--board-size-px) / 100)); } /* ~sqrt(2) * length */
+}
+/* Diagonal TR-BL */
+.winning-line-animation.diag2 {
+    width: 10px;
+    height: 0%;
+    transform-origin: top right;
+    transform: rotate(-45deg) scaleY(0);
+    right: 0; top: 0;
+}
+@keyframes draw-line-diag2 {
+    from { transform: rotate(-45deg) scaleY(0); }
+    to { transform: rotate(-45deg) scaleY(1); height: calc(141.42% * (var(--board-size-px) / 100)); }
+}
+
+
+/* Status & Buttons (tailwind in html) */
+.status-bar {
+    background-color: #1E293B;
+    padding: 15px 20px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #94A3B8; /* Slate-400 */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    flex-wrap: wrap;
+}
+.player-indicator {
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    margin: 5px 0;
+}
+.player-indicator.x-active { background-color: rgba(239, 68, 68, 0.2); color: #EF4444; }
+.player-indicator.o-active { background-color: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+
+
+/* Game Timer (Sudden Death) */
+.game-timer-container {
+    background-color: #1E293B;
+    border-radius: 10px;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #E2E8F0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    overflow: hidden; /* For progress bar effect */
+    position: relative;
+}
+.game-timer-container.hidden {
+    display: none;
+}
+.game-timer {
+    position: relative;
+    z-index: 2; /* Above the background bar */
+}
+.game-timer-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(239, 68, 68, 0.3); /* Reddish overlay for time running out */
+    transform-origin: left;
+    transform: scaleX(var(--timer-progress, 1)); /* Custom property for JS */
+    transition: transform 0.1s linear; /* Smooth fill/empty */
+    z-index: 1;
+}
+
+/* Modals */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85); /* Slightly darker overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    padding: 20px; /* Padding for mobile view */
+}
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-content {
+    background-color: #1E293B;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+    max-width: 550px; /* Slightly wider modal content */
+    width: 100%;
+    color: #E2E8F0; /* Slate-200 */
+    transform: translateY(-20px);
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    position: relative; /* For close button */
+    max-height: 90vh; /* Ensure modal fits on screen vertically */
+    overflow-y: auto; /* Allow scrolling within modal content */
+}
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+.modal-content h2 {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #6366F1; /* Indigo-500 */
+}
+.modal-close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    color: #CBD5E1; /* Slate-300 */
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1; /* Better alignment for 'x' */
+}
+.modal-close-button:hover {
+    color: #E2E8F0;
+}
+
+/* Settings Modal Specifics */
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+}
+.setting-item:last-child {
+    border-bottom: none;
+}
+.setting-item label {
+    font-size: 1.1em;
+    color: #94A3B8;
+    flex-grow: 1;
+}
+.setting-item input[type="range"] {
+    width: 180px;
+    accent-color: #6366F1;
+}
+.setting-item input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    accent-color: #6366F1;
+    cursor: pointer;
+    margin-left: 10px;
+}
+.slider-value {
+    min-width: 50px;
+    text-align: right;
+    font-weight: bold;
+    color: #E2E8F0;
+    margin-left: 10px;
+}
+
+/* Radio Button Group */
+.setting-group {
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+.setting-group-label {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #6366F1;
+    margin-bottom: 10px;
+    display: block;
+}
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1em;
+    color: #E2E8F0;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.radio-label:hover {
+    color: #CBD5E1;
+}
+.radio-label input[type="radio"] {
+    accent-color: #6366F1;
+    width: 18px;
+    height: 18px;
+}
+
+/* Achievement Modal Specifics */
+.achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.achievement-card {
+    background-color: #0A1128;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    transition: transform 0.2s, border-color 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.achievement-card.unlocked {
+    border-color: #10B981; /* Emerald border */
+    transform: scale(1.02);
+}
+.achievement-icon {
+    font-size: 2.2em;
+    margin-bottom: 8px;
+    color: #475569; /* Slate for locked */
+    transition: color 0.3s;
+}
+.achievement-card.unlocked .achievement-icon {
+    color: #10B981; /* Emerald for unlocked */
+}
+.achievement-name {
+    font-weight: bold;
+    color: #E2E8F0;
+    margin-bottom: 5px;
+    font-size: 0.95em;
+}
+.achievement-description {
+    font-size: 0.75em;
+    color: #94A3B8;
+}
+.achievement-card.unlocked .achievement-description {
+    color: #E0FBFC;
+}
+
+/* Stats Modal Specifics */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+.stat-card {
+    background-color: #0A1128;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.stat-label {
+    font-size: 0.9em;
+    color: #94A3B8;
+    display: block;
+    margin-bottom: 5px;
+}
+.stat-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #E0FBFC;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #3B82F6; /* Blue for notifications */
+    color: white;
+    padding: 15px 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    z-index: 2000;
+    transform: translateX(120%);
+    transition: transform 0.5s ease-out;
+    max-width: 300px;
+    opacity: 0;
+    visibility: hidden;
+}
+.notification.show {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+.notification h3 {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+/* Animations */
+.animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Themes */
+body.theme-dark {
+    background-color: #050711;
+    color: #E0FBFC;
+}
+body.theme-dark .app-container,
+body.theme-dark .modal-content {
+    background-color: #0F172A;
+    border-color: #1E293B;
+}
+body.theme-dark .status-bar,
+body.theme-dark .game-timer-container {
+    background-color: #1E293B;
+    color: #94A3B8;
+}
+body.theme-dark .game-board,
+body.theme-dark .achievement-card,
+body.theme-dark .stat-card {
+    background-color: #0A1128;
+}
+body.theme-dark .cell {
+    background-color: #121A2C;
+    border-color: rgba(255, 255, 255, 0.05);
+}
+body.theme-dark .cell:hover:not(.occupied):not(.disabled) {
+    background-color: #1A223A;
+}
+
+/* Light Theme */
+body.theme-light {
+    background-color: #E0FBFC;
+    color: #0F172A;
+}
+body.theme-light .app-container,
+body.theme-light .modal-content {
+    background-color: #FFFFFF;
+    border-color: #D1D5DB;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}
+body.theme-light .status-bar,
+body.theme-light .game-timer-container {
+    background-color: #F3F4F6;
+    color: #4B5563;
+}
+body.theme-light .game-board,
+body.theme-light .achievement-card,
+body.theme-light .stat-card {
+    background-color: #F9FAFB;
+}
+body.theme-light .cell {
+    background-color: #E5E7EB;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+body.theme-light .cell:hover:not(.occupied):not(.disabled) {
+    background-color: #D1D5DB;
+}
+body.theme-light .modal-content h2,
+body.theme-light .menu-buttons button,
+body.theme-light .modal-content button.menu-button,
+body.theme-light .setting-group-label,
+body.theme-light .radio-label input[type="radio"] {
+    color: #4F46E5; /* Indigo-600 */
+    accent-color: #4F46E5;
+}
+body.theme-light .player-indicator.x-active { background-color: rgba(239, 68, 68, 0.1); }
+body.theme-light .player-indicator.o-active { background-color: rgba(59, 130, 246, 0.1); }
+
+
+/* Matrix Green Theme */
+body.theme-matrix {
+    background-color: #000000; /* Black */
+    color: #00FF41; /* Neo Green */
+}
+body.theme-matrix .app-container,
+body.theme-matrix .modal-content {
+    background-color: #000F00; /* Darker green */
+    border-color: #008F00;
+    box-shadow: 0 15px 30px rgba(0, 255, 65, 0.3);
+}
+body.theme-matrix h1,
+body.theme-matrix .modal-content h2,
+body.theme-matrix .menu-buttons button,
+body.theme-matrix .modal-content button.menu-button,
+body.theme-matrix .setting-group-label,
+body.theme-matrix .radio-label input[type="radio"] {
+    color: #33FF66; /* Lighter green */
+    accent-color: #33FF66;
+}
+body.theme-matrix .status-bar,
+body.theme-matrix .game-timer-container {
+    background-color: #002200;
+    color: #00B100;
+}
+body.theme-matrix .game-board,
+body.theme-matrix .achievement-card,
+body.theme-matrix .stat-card {
+    background-color: #001100;
+}
+body.theme-matrix .cell {
+    background-color: #001A00;
+    border-color: rgba(0, 255, 65, 0.1);
+}
+body.theme-matrix .cell:hover:not(.occupied):not(.disabled) {
+    background-color: #002A00;
+}
+body.theme-matrix .cell.x-mark {
+    color: #FF0000; /* Red for X */
+}
+body.theme-matrix .cell.o-mark {
+    color: #00AAFF; /* Blue for O */
+}
+body.theme-matrix .cell.winning-cell {
+    background-color: #00FF41;
+    color: #000000;
+    animation: pulse-win-matrix 1s infinite alternate;
+}
+@keyframes pulse-win-matrix {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(1.05); opacity: 0.9; box-shadow: 0 0 15px #00FF41; }
+}
+body.theme-matrix .achievement-card.unlocked {
+    border-color: #00FF41;
+}
+body.theme-matrix .achievement-card.unlocked .achievement-icon {
+    color: #00FF41;
+}
+body.theme-matrix .game-timer-container::before {
+    background-color: rgba(255, 0, 0, 0.3); /* Reddish overlay for time running out */
+}
+.notification {
+    background-color: #00B100;
+}
